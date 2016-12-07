@@ -34,16 +34,16 @@ customPCA<-function(data,withLabel=FALSE){
 #============================================================
 # Codes
 #============================================================
-#================================
-# PCA implementation on MNIST
-#================================
+#read data
 nrow=400
 path="K:\\homework\\STAT 139\\project\\data\\"
 binaryData = load_data(path,400,0,1)
 data = load_data(path,nrow)
 binary_data_without_label=binaryData[,-which(names(binaryData) == "label")]
 data_without_label=data[,-which(names(data) == "label")]
-
+#================================
+# PCA implementation on MNIST
+#================================
 pca = customPCA(data_without_label,FALSE)
 #dimension reduced data
 new_data = data.frame(data$label,pca$x[,1:50])
@@ -87,19 +87,17 @@ binary_new_features = data.frame(binaryData$label,binary_percent_col_pixel,binar
 # Logistic Regression
 #======================================
 library(nnet)
-mldata<-mlogit.data(new_data, choice="data.label")
-covar <- names(new_data)[1:10]
-mlogit.model<- mlogit(as.formula(paste("data.label", "~1|", paste(covar, collapse="+"))), data = mldata)
+library("mlogit")
+
 #--------------------------------------
 # Original data
 #--------------------------------------
 #binaryData = load_data(path,nrow,0,1)
+mldata<-mlogit.data(new_data, choice="data.label")
+covar <- names(new_data)[1:10]
+mlogit.model<- mlogit(as.formula(paste("data.label", "~1|", paste(covar, collapse="+"))), data = mldata)
 
-library("mlogit")
-mldata<-mlogit.data(data, choice="label")
-covar <- names(data)[-1]
-mlogit.model<- mlogit(label~1|V1+v2, data = mldata)
-
+##binary
 samples = sample(1200)
 fit1 <- glm(label ~ ., family=binomial("logit"), data=binaryData[samples[1:1000],])
 summary1<-summary(fit1)
@@ -117,6 +115,7 @@ summary2<-summary(fit2)
 #--------------------------------------
 # Created Feature
 #--------------------------------------
+#binary
 samples = sample(1200)
 fit1 <- glm(binaryData.label ~ ., family=binomial("logit"), data=binary_new_features[samples[1:1000],])
 summary1<-summary(fit1)
@@ -124,7 +123,7 @@ fitted.results <- predict(fit1,newdata=binary_new_features[samples[1000:1200],],
 fitted.results <- ifelse(fitted.results > 0.5,1,0)
 misClasificError <- mean(fitted.results != binary_new_features$binaryData.label[samples[1000:1200]])
 print(paste('Accuracy',1-misClasificError))
-
+#multiclass
 samples = sample(length(new_features[,1]))
 fit3 <- multinom(data.label ~ ., data = new_features[samples[1:3400],])
 fitted.results <- predict(fit3,newdata=new_features[samples[1:3400],],type="probs")
